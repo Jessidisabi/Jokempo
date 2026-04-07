@@ -1,0 +1,244 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); }
+  .screen { display: none; }
+  .screen.active { display: block; }
+  .cat-bg { background: var(--color-background-secondary); border-radius: var(--border-radius-lg); padding: 2rem; margin-bottom: 1rem; text-align: center; }
+  .title { font-size: 22px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 0.5rem; }
+  .subtitle { font-size: 14px; color: var(--color-text-secondary); margin-bottom: 1.5rem; }
+  .cat-deco { font-size: 48px; display: block; margin: 0 auto 1rem; line-height: 1; }
+  .input-row { display: flex; flex-direction: column; gap: 12px; margin-bottom: 1.5rem; max-width: 340px; margin-left: auto; margin-right: auto; }
+  .input-group { display: flex; flex-direction: column; gap: 6px; text-align: left; }
+  .input-group label { font-size: 13px; color: var(--color-text-secondary); }
+  .input-group input { padding: 10px 14px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); font-size: 15px; outline: none; }
+  .input-group input:focus { border-color: var(--color-border-primary); }
+  .btn-main { display: inline-block; padding: 10px 28px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); font-size: 15px; cursor: pointer; transition: background 0.15s; }
+  .btn-main:hover { background: var(--color-background-secondary); }
+  .btn-main:active { transform: scale(0.98); }
+  .player-tag { display: inline-block; padding: 3px 10px; border-radius: var(--border-radius-md); font-size: 12px; font-weight: 500; margin-bottom: 6px; }
+  .p1-tag { background: #EEEDFE; color: #3C3489; }
+  .p2-tag { background: #E1F5EE; color: #085041; }
+  .move-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 340px; margin: 0 auto 1rem; }
+  .move-btn { padding: 18px 8px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-lg); background: var(--color-background-primary); color: var(--color-text-primary); font-size: 13px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; transition: background 0.15s, border-color 0.15s; }
+  .move-btn:hover { background: var(--color-background-secondary); border-color: var(--color-border-primary); }
+  .move-btn.selected { border: 1.5px solid #534AB7; background: #EEEDFE; }
+  .move-btn.selected .move-icon { filter: none; }
+  .move-icon { font-size: 28px; line-height: 1; }
+  .move-label { font-size: 12px; color: var(--color-text-secondary); }
+  .vs-row { display: flex; align-items: center; justify-content: center; gap: 1.5rem; margin: 1.5rem 0; }
+  .vs-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; min-width: 110px; text-align: center; }
+  .vs-move { font-size: 36px; display: block; margin-bottom: 6px; }
+  .vs-sep { font-size: 18px; font-weight: 500; color: var(--color-text-tertiary); }
+  .result-badge { display: inline-block; padding: 6px 20px; border-radius: var(--border-radius-md); font-size: 15px; font-weight: 500; margin: 1rem 0; }
+  .badge-win { background: #EAF3DE; color: #27500A; }
+  .badge-draw { background: #FAEEDA; color: #633806; }
+  .score-row { display: flex; gap: 12px; justify-content: center; margin-bottom: 1.5rem; }
+  .score-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem 1.25rem; min-width: 110px; text-align: center; }
+  .score-name { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+  .score-num { font-size: 24px; font-weight: 500; color: var(--color-text-primary); }
+  .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .paw-divider { display: flex; align-items: center; gap: 8px; margin: 1rem 0; color: var(--color-text-tertiary); font-size: 12px; }
+  .paw-divider::before, .paw-divider::after { content: ''; flex: 1; height: 0.5px; background: var(--color-border-tertiary); }
+  .hidden-move { font-size: 36px; filter: grayscale(1) opacity(0.3); }
+  .phase-label { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 1rem; }
+  .cat-ear { display: inline-block; }
+  .rules-box { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 1rem; text-align: left; max-width: 300px; margin: 0 auto 1.5rem; font-size: 13px; color: var(--color-text-secondary); line-height: 1.8; }
+  .logo-cat { font-size: 64px; margin-bottom: 0; display: block; line-height: 1.1; }
+</style>
+
+<div id="screen-welcome" class="screen active cat-bg">
+  <span class="logo-cat">🐱</span>
+  <div class="title">Jokempo dos Gatos</div>
+  <div class="subtitle">Pedra · Papel · Tesoura com charme felino</div>
+  <div class="input-row">
+    <div class="input-group">
+      <label>🐾 Nome do Jogador 1</label>
+      <input id="inp-p1" type="text" placeholder="Ex: Mia" maxlength="18" />
+    </div>
+    <div class="input-group">
+      <label>🐾 Nome do Jogador 2</label>
+      <input id="inp-p2" type="text" placeholder="Ex: Felix" maxlength="18" />
+    </div>
+  </div>
+  <div class="rules-box">
+    🪨 Pedra ganha da tesoura<br>
+    📄 Papel ganha da pedra<br>
+    ✂️ Tesoura ganha do papel
+  </div>
+  <button class="btn-main" onclick="startGame()">Começar o jogo ↗</button>
+</div>
+
+<div id="screen-p1" class="screen">
+  <div class="cat-bg">
+    <span class="cat-deco">😼</span>
+    <span class="player-tag p1-tag" id="lbl-p1-tag">Jogador 1</span>
+    <div class="title" id="lbl-p1-title">Mia, escolha sua jogada</div>
+    <div class="phase-label">O outro jogador não pode ver!</div>
+    <div class="move-grid" id="grid-p1"></div>
+    <button class="btn-main" id="btn-p1-confirm" onclick="confirmP1()" style="display:none">Confirmar jogada ↗</button>
+  </div>
+</div>
+
+<div id="screen-p2" class="screen">
+  <div class="cat-bg">
+    <span class="cat-deco">🙀</span>
+    <span class="player-tag p2-tag" id="lbl-p2-tag">Jogador 2</span>
+    <div class="title" id="lbl-p2-title">Felix, escolha sua jogada</div>
+    <div class="phase-label">A jogada do outro jogador está escondida!</div>
+    <div class="move-grid" id="grid-p2"></div>
+    <button class="btn-main" id="btn-p2-confirm" onclick="confirmP2()" style="display:none">Confirmar jogada ↗</button>
+  </div>
+</div>
+
+<div id="screen-result" class="screen">
+  <div class="cat-bg">
+    <span class="cat-deco" id="result-emoji">😺</span>
+    <div class="title" id="result-title">Resultado</div>
+    <div class="vs-row">
+      <div class="vs-card">
+        <span class="vs-move" id="res-move1">🪨</span>
+        <div class="score-name" id="res-name1">Mia</div>
+      </div>
+      <span class="vs-sep">VS</span>
+      <div class="vs-card">
+        <span class="vs-move" id="res-move2">📄</span>
+        <div class="score-name" id="res-name2">Felix</div>
+      </div>
+    </div>
+    <div class="result-badge" id="result-badge">Empate!</div>
+    <div class="paw-divider">placar</div>
+    <div class="score-row">
+      <div class="score-card">
+        <div class="score-name" id="sc-name1">Mia</div>
+        <div class="score-num" id="sc-p1">0</div>
+      </div>
+      <div class="score-card">
+        <div class="score-name" id="sc-name2">Felix</div>
+        <div class="score-num" id="sc-p2">0</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-main" onclick="playAgain()">Jogar de novo ↗</button>
+      <button class="btn-main" onclick="resetAll()">Reiniciar tudo</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const moves = [
+  { id: 'pedra', label: 'Pedra', icon: '🪨' },
+  { id: 'papel', label: 'Papel', icon: '📄' },
+  { id: 'tesoura', label: 'Tesoura', icon: '✂️' }
+];
+const wins = { pedra: 'tesoura', papel: 'pedra', tesoura: 'papel' };
+
+let p1Name = '', p2Name = '', move1 = null, move2 = null;
+let score1 = 0, score2 = 0;
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function buildGrid(gridId, selectFn, confirmBtnId) {
+  const grid = document.getElementById(gridId);
+  grid.innerHTML = '';
+  moves.forEach(m => {
+    const btn = document.createElement('button');
+    btn.className = 'move-btn';
+    btn.id = gridId + '-' + m.id;
+    btn.innerHTML = `<span class="move-icon">${m.icon}</span><span class="move-label">${m.label}</span>`;
+    btn.onclick = () => selectFn(m.id, gridId, confirmBtnId);
+    grid.appendChild(btn);
+  });
+}
+
+function selectMove(moveId, gridId, confirmBtnId) {
+  document.querySelectorAll('#' + gridId + ' .move-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById(gridId + '-' + moveId).classList.add('selected');
+  document.getElementById(confirmBtnId).style.display = 'inline-block';
+}
+
+function startGame() {
+  p1Name = document.getElementById('inp-p1').value.trim() || 'Jogador 1';
+  p2Name = document.getElementById('inp-p2').value.trim() || 'Jogador 2';
+  score1 = 0; score2 = 0;
+  document.getElementById('lbl-p1-tag').textContent = p1Name;
+  document.getElementById('lbl-p2-tag').textContent = p2Name;
+  document.getElementById('lbl-p1-title').textContent = p1Name + ', escolha sua jogada';
+  document.getElementById('lbl-p2-title').textContent = p2Name + ', escolha sua jogada';
+  move1 = null; move2 = null;
+  buildGrid('grid-p1', (mid) => { move1 = mid; selectMove(mid, 'grid-p1', 'btn-p1-confirm'); }, 'btn-p1-confirm');
+  buildGrid('grid-p2', (mid) => { move2 = mid; selectMove(mid, 'grid-p2', 'btn-p2-confirm'); }, 'btn-p2-confirm');
+  document.getElementById('btn-p1-confirm').style.display = 'none';
+  document.getElementById('btn-p2-confirm').style.display = 'none';
+  showScreen('screen-p1');
+}
+
+function confirmP1() {
+  if (!move1) return;
+  showScreen('screen-p2');
+}
+
+function confirmP2() {
+  if (!move2) return;
+  showResult();
+}
+
+function showResult() {
+  const m1 = moves.find(m => m.id === move1);
+  const m2 = moves.find(m => m.id === move2);
+  let winner = null;
+  if (wins[move1] === move2) { winner = 1; score1++; }
+  else if (wins[move2] === move1) { winner = 2; score2++; }
+
+  document.getElementById('res-move1').textContent = m1.icon;
+  document.getElementById('res-move2').textContent = m2.icon;
+  document.getElementById('res-name1').textContent = p1Name;
+  document.getElementById('res-name2').textContent = p2Name;
+  document.getElementById('sc-name1').textContent = p1Name;
+  document.getElementById('sc-name2').textContent = p2Name;
+  document.getElementById('sc-p1').textContent = score1;
+  document.getElementById('sc-p2').textContent = score2;
+
+  const badge = document.getElementById('result-badge');
+  const emoji = document.getElementById('result-emoji');
+  const title = document.getElementById('result-title');
+
+  if (winner === 1) {
+    badge.textContent = p1Name + ' ganhou! 🐱';
+    badge.className = 'result-badge badge-win';
+    emoji.textContent = '😸';
+    title.textContent = 'Vitória!';
+  } else if (winner === 2) {
+    badge.textContent = p2Name + ' ganhou! 🐱';
+    badge.className = 'result-badge badge-win';
+    emoji.textContent = '😸';
+    title.textContent = 'Vitória!';
+  } else {
+    badge.textContent = 'Empate — os gatos concordaram 🐾';
+    badge.className = 'result-badge badge-draw';
+    emoji.textContent = '😾';
+    title.textContent = 'Empate!';
+  }
+  showScreen('screen-result');
+}
+
+function playAgain() {
+  move1 = null; move2 = null;
+  buildGrid('grid-p1', (mid) => { move1 = mid; selectMove(mid, 'grid-p1', 'btn-p1-confirm'); }, 'btn-p1-confirm');
+  buildGrid('grid-p2', (mid) => { move2 = mid; selectMove(mid, 'grid-p2', 'btn-p2-confirm'); }, 'btn-p2-confirm');
+  document.getElementById('btn-p1-confirm').style.display = 'none';
+  document.getElementById('btn-p2-confirm').style.display = 'none';
+  document.getElementById('lbl-p1-title').textContent = p1Name + ', escolha sua jogada';
+  document.getElementById('lbl-p2-title').textContent = p2Name + ', escolha sua jogada';
+  showScreen('screen-p1');
+}
+
+function resetAll() {
+  document.getElementById('inp-p1').value = '';
+  document.getElementById('inp-p2').value = '';
+  showScreen('screen-welcome');
+}
+</script>
